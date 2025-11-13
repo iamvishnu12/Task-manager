@@ -3,7 +3,7 @@ A fully functional Task Management Application built using React, Firebase, and 
 This app allows users to create, organize, update, and track tasks using a clean UI inspired by the provided Figma design.
 
 🚀 Live Demo
-🔗 Deployment URL: ADD YOUR VERCEL DEPLOYMENT LINK HERE
+🔗 Deployment URL: https://taskmanager-mko835cuq-iamvishnu12s-projects.vercel.app
 
 📸 Screenshots
 (Add screenshots here – board view, list view, modals)
