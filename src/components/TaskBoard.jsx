@@ -6,7 +6,6 @@ import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import "./TaskBoard.css";
 import TaskEditModal from "./TaskEditModal";
 
-
 const COLUMNS = [
   { id: "todo", title: "To Do", color: "#F3EBFF" },
   { id: "inprogress", title: "In Progress", color: "#F7FBFF" },
@@ -19,7 +18,7 @@ export default function TaskBoard({ user, selectedCategory = "all", searchTerm =
   const [editingTask, setEditingTask] = useState(null);
   const [showAddModal, setShowAddModal] = useState(false);
 
-
+  // Filter tasks
   const visibleTasks = useMemo(() => {
     if (!tasks) return [];
 
@@ -29,7 +28,9 @@ export default function TaskBoard({ user, selectedCategory = "all", searchTerm =
       if (selectedCategory === "completed") {
         filtered = filtered.filter((t) => t.completed);
       } else {
-        filtered = filtered.filter((t) => t.category === selectedCategory);
+        filtered = filtered.filter(
+          (t) => t.category?.toLowerCase() === selectedCategory.toLowerCase()
+        );
       }
     }
 
@@ -42,7 +43,7 @@ export default function TaskBoard({ user, selectedCategory = "all", searchTerm =
     return filtered;
   }, [tasks, selectedCategory, searchTerm]);
 
-  
+  // Group tasks
   const grouped = useMemo(() => {
     const map = { todo: [], inprogress: [], done: [] };
     visibleTasks.forEach((t) => {
@@ -52,7 +53,7 @@ export default function TaskBoard({ user, selectedCategory = "all", searchTerm =
     return map;
   }, [visibleTasks]);
 
-
+  // Drag drop
   const onDragEnd = async (result) => {
     if (!result.destination) return;
     await updateTask(result.draggableId, { status: result.destination.droppableId });
@@ -62,17 +63,9 @@ export default function TaskBoard({ user, selectedCategory = "all", searchTerm =
     await updateTask(taskId, { status: newStatus, completed: newStatus === "done" });
   };
 
-  const handleToggleComplete = async (taskId, completed) => {
-    await updateTask(taskId, {
-      completed,
-      status: completed ? "done" : "todo",
-    });
-  };
-
   return (
     <div className="task-board-wrapper">
-
-      
+      {/* Toolbar */}
       <div className="board-toolbar">
         <div className="board-left">
           <button className={`tab ${view === "board" ? "active" : ""}`} onClick={() => setView("board")}>
@@ -86,7 +79,7 @@ export default function TaskBoard({ user, selectedCategory = "all", searchTerm =
         <button className="add-primary" onClick={() => setShowAddModal(true)}>Add Task</button>
       </div>
 
-      
+      {/* Add Task Modal */}
       {showAddModal && (
         <TaskFormModal
           onClose={() => setShowAddModal(false)}
@@ -97,18 +90,17 @@ export default function TaskBoard({ user, selectedCategory = "all", searchTerm =
         />
       )}
 
-      
+      {/* Edit Task Modal */}
       {editingTask && (
         <TaskEditModal
           selectedTask={editingTask}
           onCancel={() => setEditingTask(null)}
           onTaskSaved={() => setEditingTask(null)}
-          addTaskFn={addTask}
           updateTaskFn={updateTask}
         />
       )}
 
-      
+      {/* LIST VIEW */}
       {view === "list" ? (
         <div className="list-view-wrapper">
           <table className="task-table">
@@ -159,7 +151,7 @@ export default function TaskBoard({ user, selectedCategory = "all", searchTerm =
           </table>
         </div>
       ) : (
-        
+        /* BOARD VIEW */
         <DragDropContext onDragEnd={onDragEnd}>
           <div className="board-columns">
             {COLUMNS.map((col) => (
@@ -185,10 +177,9 @@ export default function TaskBoard({ user, selectedCategory = "all", searchTerm =
                             <div ref={prov.innerRef} {...prov.draggableProps} {...prov.dragHandleProps}>
                               <TaskCard
                                 task={task}
-                                onEdit={(t) => setEditingTask(t)}
+                                onEdit={() => setEditingTask(task)}
                                 deleteTask={deleteTask}
                                 onMark={handleMark}
-                                toggleComplete={handleToggleComplete}
                               />
                             </div>
                           )}

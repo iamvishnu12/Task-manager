@@ -1,5 +1,6 @@
+// src/components/TaskFormModal.jsx
 import React, { useState } from "react";
-import "./TaskModal.css";
+import "./TaskFormModal.css";
 
 export default function TaskFormModal({ onClose, addTask }) {
   const [title, setTitle] = useState("");
@@ -7,31 +8,35 @@ export default function TaskFormModal({ onClose, addTask }) {
   const [category, setCategory] = useState("work");
   const [dueDate, setDueDate] = useState("");
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!title.trim()) return;
 
-    addTask({
-      title,
-      description,
-      category,
-      dueDate,
+    await addTask({
+      title: title.trim(),
+      description: description.trim(),
+      category: (category || "work").toLowerCase(),
+      dueDate: dueDate || "",
       status: "todo",
       completed: false,
-      createdAt: new Date().toISOString()
     });
 
+    // clear & close
+    setTitle("");
+    setDescription("");
+    setCategory("work");
+    setDueDate("");
     onClose();
   };
 
   return (
     <div className="modal-overlay">
-      <div className="modal-container">
-        <h2 className="modal-title">Add Task</h2>
+      <div className="modal-box">
+        <h3>Add New Task</h3>
 
         <form onSubmit={handleSubmit} className="modal-form">
-
+          <label>Title</label>
           <input
-            className="modal-input"
             type="text"
             placeholder="Task title"
             value={title}
@@ -39,49 +44,34 @@ export default function TaskFormModal({ onClose, addTask }) {
             required
           />
 
+          <label>Description</label>
           <textarea
-            className="modal-textarea"
-            placeholder="Task description"
+            rows="3"
+            placeholder="Add description (optional)"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            rows={3}
-          ></textarea>
+          />
 
-          <div className="modal-row">
-            <div className="modal-col">
+          <div className="row">
+            <div className="col">
               <label>Category</label>
-              <select
-                className="modal-select"
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-              >
+              <select value={category} onChange={(e) => setCategory(e.target.value)}>
                 <option value="work">Work</option>
                 <option value="personal">Personal</option>
               </select>
             </div>
 
-            <div className="modal-col">
-              <label>Due Date</label>
-              <input
-                className="modal-input"
-                type="date"
-                value={dueDate}
-                onChange={(e) => setDueDate(e.target.value)}
-                required
-              />
+            <div className="col">
+              <label>Due date</label>
+              <input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
             </div>
           </div>
 
           <div className="modal-actions">
-            <button
-              type="button"
-              className="modal-btn cancel"
-              onClick={onClose}
-            >
+            <button type="button" className="cancel-btn" onClick={onClose}>
               Cancel
             </button>
-
-            <button type="submit" className="modal-btn primary">
+            <button type="submit" className="add-btn">
               Add Task
             </button>
           </div>
@@ -90,4 +80,3 @@ export default function TaskFormModal({ onClose, addTask }) {
     </div>
   );
 }
-

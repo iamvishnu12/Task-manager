@@ -1,71 +1,76 @@
+/* src/components/TaskFormModal.css */
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.35);
+  background: rgba(12, 18, 28, 0.5);
   display: flex;
-  justify-content: center;
   align-items: center;
-  z-index: 999;
+  justify-content: center;
+  z-index: 60;
 }
 
 .modal-box {
+  width: 520px;
+  max-width: 94%;
   background: white;
-  padding: 24px;
-  width: 420px;
-  border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+  border-radius: 10px;
+  padding: 18px;
+  box-shadow: 0 6px 20px rgba(2,6,23,0.15);
 }
 
-.modal-box h2 {
-  margin-bottom: 12px;
-  font-size: 22px;
-  font-weight: 600;
+.modal-box h3 {
+  margin: 0 0 10px 0;
+  font-size: 18px;
 }
 
-label {
+.modal-form label {
   display: block;
-  margin-top: 12px;
-  margin-bottom: 6px;
-  font-weight: 500;
+  margin-top: 10px;
+  font-size: 13px;
+  color: #0f172a;
 }
 
-input,
-textarea,
-select {
+.modal-form input,
+.modal-form textarea,
+.modal-form select {
   width: 100%;
-  padding: 8px 12px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
+  padding: 8px 10px;
+  margin-top: 6px;
+  border-radius: 8px;
+  border: 1px solid #e6e9ef;
   font-size: 14px;
 }
 
-.row {
+.modal-form .row {
   display: flex;
-  gap: 12px;
+  gap: 10px;
+  margin-top: 10px;
 }
 
-.col {
+.modal-form .col {
   flex: 1;
 }
 
 .modal-actions {
-  margin-top: 20px;
   display: flex;
   justify-content: flex-end;
-  gap: 12px;
+  gap: 10px;
+  margin-top: 14px;
 }
 
 .cancel-btn {
-  background: #ddd;
-  padding: 8px 14px;
-  border-radius: 6px;
+  background: transparent;
+  border: 1px solid #e6e9ef;
+  padding: 8px 12px;
+  border-radius: 8px;
   cursor: pointer;
 }
 
 .add-btn {
   background: #6366f1;
   color: white;
-  padding: 8px 14px;
-  border-radius: 6px;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 8px;
   cursor: pointer;
 }

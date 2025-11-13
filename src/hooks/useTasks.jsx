@@ -1,51 +1,85 @@
-import { useEffect, useState } from "react";
+// src/hooks/useTasks.js
+import { useEffect, useState, useCallback } from "react";
 import {
-  addDoc,
   collection,
+  addDoc,
+  updateDoc,
   deleteDoc,
   doc,
-  updateDoc,
   query,
   where,
   onSnapshot,
+  serverTimestamp,
 } from "firebase/firestore";
 import { db } from "../firebase";
 
+/**
+ * useTasks(userId)
+ * - returns { tasks, addTask, updateTask, deleteTask }
+ * - realtime updates via onSnapshot
+ */
 export default function useTasks(userId) {
   const [tasks, setTasks] = useState([]);
 
   useEffect(() => {
-    if (!userId) return;
+    if (!userId) {
+      setTasks([]);
+      return;
+    }
 
-    const q = query(collection(db, "tasks"), where("userId", "==", userId));
-
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const list = snapshot.docs.map((d) => ({
-        id: d.id,
-        ...d.data(),
-      }));
-      setTasks(list);
+    const tasksRef = collection(db, "tasks");
+    const q = query(tasksRef, where("userId", "==", userId));
+    const unsub = onSnapshot(q, (snapshot) => {
+      const list = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
+      // Ensure consistent types/fields
+      setTasks(
+        list.map((t) => ({
+          ...t,
+          category: (t.category || "work").toLowerCase(),
+          status: t.status || "todo",
+          completed: !!t.completed,
+        }))
+      );
     });
 
-    return () => unsubscribe();
+    return () => unsub();
   }, [userId]);
 
-  const addTask = async (task) => {
-    await addDoc(collection(db, "tasks"), {
-      ...task,
-      userId,
-      status: "todo",
-      completed: false
-    });
-  };
+  const addTask = useCallback(
+    async (task) => {
+      if (!userId) throw new Error("Missing userId in addTask");
+      const tasksRef = collection(db, "tasks");
+      const payload = {
+        title: task.title || "",
+        description: task.description || "",
+        category: (task.category || "work").toLowerCase(),
+        status: task.status || "todo",
+        completed: !!task.completed || (task.status === "done"),
+        dueDate: task.dueDate || "",
+        createdAt: serverTimestamp(),
+        userId,
+      };
+      await addDoc(tasksRef, payload);
+    },
+    [userId]
+  );
 
-  const updateTask = async (id, updatedData) => {
-    await updateDoc(doc(db, "tasks", id), updatedData);
-  };
+  const updateTask = useCallback(async (id, updatedData) => {
+    const docRef = doc(db, "tasks", id);
+    // normalize certain fields
+    const payload = { ...updatedData };
+    if (payload.category) payload.category = payload.category.toLowerCase();
+    if (payload.status) {
+      payload.status = payload.status;
+      payload.completed = payload.completed ?? payload.status === "done";
+    }
+    await updateDoc(docRef, payload);
+  }, []);
 
-  const deleteTask = async (id) => {
-    await deleteDoc(doc(db, "tasks", id));
-  };
+  const deleteTask = useCallback(async (id) => {
+    const docRef = doc(db, "tasks", id);
+    await deleteDoc(docRef);
+  }, []);
 
   return { tasks, addTask, updateTask, deleteTask };
 }

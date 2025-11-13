@@ -1,230 +1,94 @@
-import React, { useState, useMemo } from "react";
-import useTasks from "../hooks/useTasks";
-import TaskFormModal from "./TaskFormModal";
-import TaskEditModal from "./TaskEditModal";
-import TaskCard from "./TaskCard";
-import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
-import "./TaskBoard.css";
+import React, { useState, useEffect } from "react";
+import "./TaskEditModal.css";
 
-const COLUMNS = [
-  { id: "todo", title: "To Do", color: "#F3EBFF" },
-  { id: "inprogress", title: "In Progress", color: "#F7FBFF" },
-  { id: "done", title: "Done", color: "#EBFFF0" },
-];
+export default function TaskEditModal({
+  selectedTask,
+  onCancel,
+  onTaskSaved,
+  updateTaskFn
+}) {
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [category, setCategory] = useState("work");
+  const [status, setStatus] = useState("todo");
+  const [dueDate, setDueDate] = useState("");
 
-export default function TaskBoard({ user, selectedCategory = "all", searchTerm = "" }) {
-  
-  const { tasks, addTask, updateTask, deleteTask } = useTasks(user.uid);
-
-  const [view, setView] = useState("board");
-  const [editingTask, setEditingTask] = useState(null);
-  const [showAddModal, setShowAddModal] = useState(false);
-
-
-  const visibleTasks = useMemo(() => {
-    if (!tasks) return [];
-
-    let filtered = [...tasks];
-
-    if (selectedCategory !== "all") {
-      if (selectedCategory === "completed") {
-        filtered = filtered.filter((t) => t.completed);
-      } else {
-        filtered = filtered.filter((t) => t.category === selectedCategory);
-      }
+  useEffect(() => {
+    if (selectedTask) {
+      setTitle(selectedTask.title);
+      setDescription(selectedTask.description || "");
+      setCategory(selectedTask.category || "work");
+      setStatus(selectedTask.status || "todo");
+      setDueDate(selectedTask.dueDate || "");
     }
+  }, [selectedTask]);
 
-    if (searchTerm.trim()) {
-      filtered = filtered.filter((t) =>
-        t.title.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-
-    return filtered;
-
-  }, [tasks, selectedCategory, searchTerm]);
-
-
-  const grouped = useMemo(() => {
-    const map = { todo: [], inprogress: [], done: [] };
-    visibleTasks.forEach((t) => {
-      const s = t.status || "todo";
-      map[s].push(t);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    await updateTaskFn(selectedTask.id, {
+      title,
+      description,
+      category,
+      status,
+      dueDate,
+      completed: status === "done"
     });
-    return map;
-  }, [visibleTasks]);
-
-  // Drag & Drop handling
-  const onDragEnd = async (result) => {
-    if (!result.destination) return;
-
-    await updateTask(result.draggableId, {
-      status: result.destination.droppableId,
-    });
-  };
-
-  const handleMark = async (taskId, newStatus) => {
-    await updateTask(taskId, {
-      status: newStatus,
-      completed: newStatus === "done",
-    });
-  };
-
-  const handleToggleComplete = async (taskId, completed) => {
-    await updateTask(taskId, {
-      completed,
-      status: completed ? "done" : "todo",
-    });
+    onTaskSaved();
   };
 
   return (
-    <div className="task-board-wrapper">
+    <div className="edit-overlay">
+      <div className="edit-modal">
+        <h2>Edit Task</h2>
 
-      {/* Toolbar */}
-      <div className="board-toolbar">
-        <div className="board-left">
-          <button
-            className={`tab ${view === "list" ? "" : "active"}`}
-            onClick={() => setView("board")}
-          >
-            Board
-          </button>
-          <button
-            className={`tab ${view === "list" ? "active" : ""}`}
-            onClick={() => setView("list")}
-          >
-            List
-          </button>
-        </div>
+        <form onSubmit={handleSubmit} className="edit-form">
 
-        <button className="add-primary" onClick={() => setShowAddModal(true)}>
-          Add Task
-        </button>
-      </div>
+          <label>Title</label>
+          <input
+            type="text"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            required
+          />
 
-     
-      {showAddModal && (
-        <TaskFormModal
-          onClose={() => setShowAddModal(false)}
-          addTask={async (payload) => {
-            await addTask(payload);
-            setShowAddModal(false);
-          }}
-        />
-      )}
+          <label>Description</label>
+          <textarea
+            rows="3"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+          />
 
-     
-      {editingTask && (
-        <TaskEditModal
-          selectedTask={editingTask}
-          onCancel={() => setEditingTask(null)}
-          onTaskSaved={() => setEditingTask(null)}
-          updateTaskFn={updateTask}
-        />
-      )}
+          <div className="row">
+            <div className="col">
+              <label>Category</label>
+              <select value={category} onChange={(e) => setCategory(e.target.value)}>
+                <option value="work">Work</option>
+                <option value="personal">Personal</option>
+              </select>
+            </div>
 
-      
-      {view === "list" ? (
-        <div className="list-view-wrapper">
-          <table className="task-table">
-            <thead>
-              <tr>
-                <th>Title</th>
-                <th>Description</th>
-                <th>Category</th>
-                <th>Due Date</th>
-                <th>Status</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {visibleTasks.length === 0 && (
-                <tr>
-                  <td colSpan="6" className="empty-row">No tasks found</td>
-                </tr>
-              )}
-
-              {visibleTasks.map((task) => (
-                <tr key={task.id}>
-                  <td>{task.title}</td>
-                  <td>{task.description || "—"}</td>
-                  <td>{task.category}</td>
-                  <td>{task.dueDate}</td>
-
-                  <td>
-                    <select
-                      value={task.status || "todo"}
-                      onChange={(e) => handleMark(task.id, e.target.value)}
-                    >
-                      <option value="todo">To Do</option>
-                      <option value="inprogress">In Progress</option>
-                      <option value="done">Done</option>
-                    </select>
-                  </td>
-
-                  <td>
-                    <button className="table-btn edit" onClick={() => setEditingTask(task)}>✏️</button>
-                    <button className="table-btn del" onClick={() => deleteTask(task.id)}>🗑️</button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      ) : (
-
-
-        <DragDropContext onDragEnd={onDragEnd}>
-          <div className="board-columns">
-            {COLUMNS.map((col) => (
-              <Droppable droppableId={col.id} key={col.id}>
-                {(provided) => (
-                  <div className="board-column" ref={provided.innerRef} {...provided.droppableProps}>
-
-                    <div className="column-header" style={{ background: col.color }}>
-                      <div className="col-title">
-                        {col.title} ({grouped[col.id]?.length})
-                      </div>
-
-                      {col.id === "todo" && (
-                        <button className="add-inline" onClick={() => setShowAddModal(true)}>
-                          + ADD TASK
-                        </button>
-                      )}
-                    </div>
-
-                    <div className="column-body">
-                      {grouped[col.id].map((task, idx) => (
-                        <Draggable key={task.id} draggableId={task.id} index={idx}>
-                          {(prov) => (
-                            <div ref={prov.innerRef} {...prov.draggableProps} {...prov.dragHandleProps}>
-                              <TaskCard
-                                task={task}
-                                onEdit={(t) => setEditingTask(t)}
-                                deleteTask={deleteTask}
-                                onMark={handleMark}
-                                toggleComplete={handleToggleComplete}
-                              />
-                            </div>
-                          )}
-                        </Draggable>
-                      ))}
-
-                      {provided.placeholder}
-
-                      {grouped[col.id].length === 0 && (
-                        <div className="empty-column">No Tasks in {col.title}</div>
-                      )}
-                    </div>
-
-                  </div>
-                )}
-              </Droppable>
-            ))}
+            <div className="col">
+              <label>Status</label>
+              <select value={status} onChange={(e) => setStatus(e.target.value)}>
+                <option value="todo">To Do</option>
+                <option value="inprogress">In Progress</option>
+                <option value="done">Done</option>
+              </select>
+            </div>
           </div>
-        </DragDropContext>
-      )}
+
+          <label>Due Date</label>
+          <input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
+
+          <div className="edit-actions">
+            <button type="button" className="cancel-btn" onClick={onCancel}>
+              Cancel
+            </button>
+            <button type="submit" className="save-btn">Save</button>
+          </div>
+
+        </form>
+      </div>
     </div>
   );
 }

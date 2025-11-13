@@ -1,33 +1,32 @@
-
 import React from "react";
 import "./Sidebar.css";
 
 export default function Sidebar({ selectedCategory, onSelectCategory }) {
-  const categories = [
-    { id: "all", name: "All Tasks", icon: "📋" },
-    { id: "work", name: "Work", icon: "💼" },
-    { id: "personal", name: "Personal", icon: "🏠" },
-    { id: "completed", name: "Completed", icon: "✅" },
+  const items = [
+    { id: "all", label: "All Tasks", icon: "📋" },
+    { id: "work", label: "Work", icon: "💼" },
+    { id: "personal", label: "Personal", icon: "🏠" },
+    { id: "completed", label: "Completed", icon: "✅" },
   ];
 
   return (
     <aside className="sidebar">
-      <h3 className="sidebar-title">My Tasks</h3>
-      <nav className="sidebar-menu">
-        {categories.map((cat) => (
-          <button
-            key={cat.id}
+      <h3 className="sidebar-title">Categories</h3>
+
+      <ul className="sidebar-list">
+        {items.map((item) => (
+          <li
+            key={item.id}
             className={`sidebar-item ${
-              selectedCategory === cat.id ? "active" : ""
+              selectedCategory === item.id ? "active" : ""
             }`}
-            onClick={() => onSelectCategory(cat.id)}
+            onClick={() => onSelectCategory(item.id)}
           >
-            <span className="icon">{cat.icon}</span>
-            {cat.name}
-          </button>
+            <span className="sidebar-icon">{item.icon}</span>
+            {item.label}
+          </li>
         ))}
-      </nav>
+      </ul>
     </aside>
   );
 }
-
