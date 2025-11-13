@@ -1,0 +1,92 @@
+.task-card {
+  background: white;
+  padding: 16px;
+  border-radius: 12px;
+  box-shadow: 0px 2px 10px rgba(0,0,0,0.08);
+  margin-bottom: 14px;
+  transition: 0.2s ease;
+}
+
+.task-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0px 4px 14px rgba(0,0,0,0.12);
+}
+
+/* Top Row - checkbox, title + icons */
+.task-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.task-title {
+  font-size: 16px;
+  font-weight: 600;
+  flex-grow: 1;
+}
+
+.icon-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  padding: 4px;
+  opacity: 0.7;
+}
+
+.icon-btn:hover {
+  opacity: 1;
+}
+
+/* Description */
+.task-description {
+  margin-top: 8px;
+  font-size: 14px;
+  color: #555;
+}
+
+/* Tags row */
+.task-tags {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 12px;
+}
+
+.category-tag {
+  padding: 4px 10px;
+  border-radius: 6px;
+  color: white;
+  font-size: 12px;
+  text-transform: capitalize;
+}
+
+.due-date {
+  font-size: 13px;
+  color: #e11d48;
+}
+
+/* Action buttons */
+.task-actions {
+  margin-top: 14px;
+  display: flex;
+  gap: 10px;
+}
+
+.status-btn {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.status-btn.inprogress {
+  background: #facc15;
+}
+
+.status-btn.done {
+  background: #22c55e;
+  color: white;
+}
